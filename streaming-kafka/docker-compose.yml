@@ -1,0 +1,66 @@
+name: streaming-kafka
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "bash", "-lc", "kafka-topics --bootstrap-server kafka:9092 --list >/dev/null 2>&1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  kafka-init:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: >
+      bash -lc "
+        echo 'Creating topics...' &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic order-events --partitions 6 --replication-factor 1 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic inventory-events --partitions 3 --replication-factor 1 &&
+        echo 'Topics created.' &&
+        kafka-topics --bootstrap-server kafka:9092 --list
+      "
+  producer_order:
+    build: ./producer_order
+    depends_on:
+      - kafka-init
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      ORDER_TOPIC: order-events
+
+  inventory_consumer:
+    build: ./inventory_consumer
+    depends_on:
+      - kafka-init
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      ORDER_TOPIC: order-events
+      INVENTORY_TOPIC: inventory-events
+      GROUP_ID: inventory-consumer
+      AUTO_OFFSET_RESET: earliest
+
+  analytics_consumer:
+    build: ./analytics_consumer
+    depends_on:
+      - kafka-init
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      ORDER_TOPIC: order-events
+      INVENTORY_TOPIC: inventory-events
+      GROUP_ID: ${GROUP_ID:-analytics-consumer}
+      AUTO_OFFSET_RESET: earliest

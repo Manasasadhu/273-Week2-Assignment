@@ -1,0 +1,92 @@
+/Users/moksh/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+
+============================================================
+  FAILURE INJECTION TEST
+============================================================
+
+------------------------------------------------------------
+  TEST 1: Inventory 100% failure rate (returns 500)
+------------------------------------------------------------
+
+[1] Injecting 100% failure rate...
+    Configure response: {'config': {'delay': 0.0, 'failure_rate': 1.0}, 'status': 'configured'}
+
+  Sending 10 requests (100% failure)...
+
++-------------+---------------+----------------+
+|   Request # |   Status Code |   Latency (ms) |
++=============+===============+================+
+|           1 |           503 |           5.39 |
++-------------+---------------+----------------+
+|           2 |           503 |           5.75 |
++-------------+---------------+----------------+
+|           3 |           503 |           4.09 |
++-------------+---------------+----------------+
+|           4 |           503 |           3.42 |
++-------------+---------------+----------------+
+|           5 |           503 |           3.45 |
++-------------+---------------+----------------+
+|           6 |           503 |           3.46 |
++-------------+---------------+----------------+
+|           7 |           503 |           3.03 |
++-------------+---------------+----------------+
+|           8 |           503 |           3.33 |
++-------------+---------------+----------------+
+|           9 |           503 |           2.95 |
++-------------+---------------+----------------+
+|          10 |           503 |           3.01 |
++-------------+---------------+----------------+
+
+  ✅ 10/10 requests returned error status (503)
+  → OrderService correctly propagates InventoryService failures
+
+------------------------------------------------------------
+  TEST 2: Inventory delay = 10s (exceeds 5s timeout)
+------------------------------------------------------------
+
+[2] Injecting 10s delay (OrderService timeout is 5s)...
+    Configure response: {'config': {'delay': 10.0, 'failure_rate': 0.0}, 'status': 'configured'}
+
+  Sending 5 requests (timeout scenario)...
+
++-------------+---------------+----------------+
+|   Request # |   Status Code |   Latency (ms) |
++=============+===============+================+
+|           1 |           504 |        5012.23 |
++-------------+---------------+----------------+
+|           2 |           504 |        5010.69 |
++-------------+---------------+----------------+
+|           3 |           504 |        5015.85 |
++-------------+---------------+----------------+
+|           4 |           504 |        5011.81 |
++-------------+---------------+----------------+
+|           5 |           504 |        5017.99 |
++-------------+---------------+----------------+
+
+  ✅ 5/5 requests timed out
+  → OrderService returns 504 Gateway Timeout after ~5s
+  → Demonstrates synchronous blocking: client waits until timeout
+
+------------------------------------------------------------
+  HEALING: Resetting InventoryService to normal
+------------------------------------------------------------
+  ✅ InventoryService healed
+
+============================================================
+  SUMMARY
+============================================================
+
+  In synchronous REST architectures, downstream failures cascade
+  directly to the upstream caller:
+
+  • When Inventory returns 500 → OrderService returns 503
+    (Service Unavailable) to the client.
+
+  • When Inventory is slow (exceeds timeout) → OrderService
+    returns 504 (Gateway Timeout) after waiting the full timeout
+    duration.
+
+  • The client is BLOCKED for every request — there is no
+    isolation between the caller and the failing dependency.
+

@@ -1,0 +1,39 @@
+/Users/moksh/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+
+============================================================
+  BASELINE LATENCY TEST — 100 requests
+============================================================
+
+  Progress: 20/100 requests sent...
+  Progress: 40/100 requests sent...
+  Progress: 60/100 requests sent...
+  Progress: 80/100 requests sent...
+  Progress: 100/100 requests sent...
+
+============================================================
+  RESULTS
+============================================================
+
++----------------+---------+
+| Metric         |   Value |
++================+=========+
+| Total Requests |  100    |
++----------------+---------+
+| Successes      |  100    |
++----------------+---------+
+| Failures       |    0    |
++----------------+---------+
+| Min (ms)       |    2.54 |
++----------------+---------+
+| Avg (ms)       |    3.16 |
++----------------+---------+
+| P50 (ms)       |    2.85 |
++----------------+---------+
+| P95 (ms)       |    3.48 |
++----------------+---------+
+| P99 (ms)       |   29.22 |
++----------------+---------+
+| Max (ms)       |   29.22 |
++----------------+---------+
+

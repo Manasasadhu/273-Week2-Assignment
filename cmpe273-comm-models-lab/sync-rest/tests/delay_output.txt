@@ -1,0 +1,46 @@
+/Users/moksh/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+
+============================================================
+  DELAY INJECTION TEST — 2.0s delay, 100 requests
+============================================================
+
+[1/4] Resetting InventoryService to normal...
+
+  Sending 100 requests (baseline)...
+    Progress: 20/100
+    Progress: 40/100
+    Progress: 60/100
+    Progress: 80/100
+    Progress: 100/100
+
+[2/4] Injecting 2.0s delay into InventoryService...
+    Configure response: {'config': {'delay': 2.0, 'failure_rate': 0.0}, 'status': 'configured'}
+
+  Sending 100 requests (with delay)...
+    Progress: 20/100
+    Progress: 40/100
+    Progress: 60/100
+    Progress: 80/100
+    Progress: 100/100
+
+[3/4] Healing InventoryService (removing delay)...
+
+============================================================
+  COMPARISON TABLE
+============================================================
+
++------------+------------+------------+------------+------------+
+| Scenario   |   Min (ms) |   Avg (ms) |   P95 (ms) |   Max (ms) |
++============+============+============+============+============+
+| Baseline   |       1.87 |       2.78 |       3.18 |       5.76 |
++------------+------------+------------+------------+------------+
+| 2.0s Delay |    2008.04 |    2014.57 |    2018.16 |    2019.27 |
++------------+------------+------------+------------+------------+
+
+  Average latency increase: 2011.78 ms (~2.0s)
+
+  EXPLANATION: Because OrderService calls InventoryService
+  synchronously, the 2.0s delay adds directly to every
+  order's total latency. The client is blocked for the full duration.
+

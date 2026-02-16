@@ -39,28 +39,19 @@ services:
     build: ./producer_order
     depends_on:
       - kafka-init
-    environment:
-      BOOTSTRAP_SERVERS: kafka:9092
-      ORDER_TOPIC: order-events
+    env_file:
+      - ./producer_order/producer.env
 
   inventory_consumer:
     build: ./inventory_consumer
     depends_on:
       - kafka-init
-    environment:
-      BOOTSTRAP_SERVERS: kafka:9092
-      ORDER_TOPIC: order-events
-      INVENTORY_TOPIC: inventory-events
-      GROUP_ID: inventory-consumer
-      AUTO_OFFSET_RESET: earliest
+    env_file:
+      - ./inventory_consumer/inventory.env
 
   analytics_consumer:
     build: ./analytics_consumer
     depends_on:
       - kafka-init
-    environment:
-      BOOTSTRAP_SERVERS: kafka:9092
-      ORDER_TOPIC: order-events
-      INVENTORY_TOPIC: inventory-events
-      GROUP_ID: ${GROUP_ID:-analytics-consumer}
-      AUTO_OFFSET_RESET: earliest
+    env_file:
+      - ./analytics_consumer/analytics.env

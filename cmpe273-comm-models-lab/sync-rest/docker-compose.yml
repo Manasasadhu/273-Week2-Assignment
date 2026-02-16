@@ -1,0 +1,31 @@
+services:
+  order-service:
+    build: ./order_service
+    container_name: order-service
+    ports:
+      - "8000:5000"
+    depends_on:
+      - inventory-service
+      - notification-service
+    networks:
+      - sync-net
+
+  inventory-service:
+    build: ./inventory_service
+    container_name: inventory-service
+    ports:
+      - "5001:5001"
+    networks:
+      - sync-net
+
+  notification-service:
+    build: ./notification_service
+    container_name: notification-service
+    ports:
+      - "5002:5002"
+    networks:
+      - sync-net
+
+networks:
+  sync-net:
+    driver: bridge

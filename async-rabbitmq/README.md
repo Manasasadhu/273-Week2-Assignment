@@ -7,20 +7,6 @@
 - **NotificationService**: consumes `InventoryReserved` and logs confirmations.
 - **RabbitMQ broker**: durable exchanges/queues, dead-letter exchange (DLX) for poison messages.
 
-## Architecture
-
-### Message Flow
-
-OrderService (HTTP /order)
-    ↓ publishes OrderPlaced
-RabbitMQ (orders exchange) → orders.reserve queue
-    ↓ consumed by
-InventoryService
-    ├→ publishes InventoryReserved → inventory exchange → inventory.notify queue
-    │   ↓ consumed by
-    │   NotificationService (logs confirmation)
-    └→ (if failed/malformed) rejected → orders.dlx → orders.dlq
-
 ## Quick Start
 
 ### 1. Build & Start Services
@@ -63,11 +49,7 @@ Expected output: orders reserved, inventory decremented, notifications logged.
 
 ### Test 1: Backlog & Recovery (60s downtime)
 
-```bash
-bash tests/backlog_test.sh
-```
-
-**What it does:**
+**Steps:**
 1. Stops InventoryService.
 2. Publishes 50 orders (accumulate in `orders.reserve` queue).
 3. Checks queue depth every 5s (e.g., `48 messages`).
@@ -77,7 +59,7 @@ bash tests/backlog_test.sh
 
 ### Test 2: Idempotency (duplicate message)
 
-**What it does:**
+**Steps:**
 1. Publishes order (e.g., `ORD-ABC123`).
 2. Publishes the same `order_id` again (simulates re-delivery).
 3. Queries `InventoryService` DB table `processed_orders` to verify only 1 row exists for that `order_id`.
@@ -93,7 +75,7 @@ bash tests/backlog_test.sh
 
 ### Test 3: DLQ (poison message)
 
-**What it does:**
+**Steps:**
 1. Publishes malformed OrderPlaced (missing `order_id`).
 2. Publishes invalid JSON (syntax error).
 3. InventoryService validates; on failure calls `channel.basic_reject(requeue=False)`.
@@ -142,10 +124,3 @@ curl -X POST http://localhost:5003/configure \
 
 Services will process delayed/failing messages and requeue them (NACK with requeue=True) for retry.
 
-## Cleanup
-
-```bash
-docker-compose down -v
-```
-
-Removes all containers and volumes (data reset).

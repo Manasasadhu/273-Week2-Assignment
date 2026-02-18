@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ar-mq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - async-net
+
+  order-service:
+    build: ./order_service
+    container_name: async-order-service
+    ports:
+      - "8001:5000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - async-net
+
+  inventory-service:
+    build: ./inventory_service
+    container_name: async-inventory-service
+    ports:
+      - "5003:5003"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - INVENTORY_DB=/data/inventory.db
+    volumes:
+      - inventory-data:/data
+    depends_on:
+      - rabbitmq
+    networks:
+      - async-net
+
+  notification-service:
+    build: ./notification_service
+    container_name: async-notification-service
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - async-net
+
+volumes:
+  rabbitmq-data:
+  inventory-data:
+
+networks:
+  async-net:
+    driver: bridge

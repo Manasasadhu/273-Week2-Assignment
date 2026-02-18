@@ -52,6 +52,11 @@ services:
   analytics_consumer:
     build: ./analytics_consumer
     depends_on:
-      - kafka-init
+      kafka-init:
+        condition: service_completed_successfully
+      inventory_consumer:
+        condition: service_started
     env_file:
       - ./analytics_consumer/analytics.env
+    ports:
+      - "8080:8080"

@@ -89,6 +89,10 @@ def start_consumer():
     }
     ch.queue_declare(queue=ORDERS_QUEUE, durable=True, arguments=args)
     ch.queue_bind(queue=ORDERS_QUEUE, exchange=ORDERS_EXCHANGE, routing_key=ORDERS_ROUTING_KEY)
+    
+    # Create DLQ queue and bind to DLX exchange
+    ch.queue_declare(queue='orders.dlq', durable=True)
+    ch.queue_bind(queue='orders.dlq', exchange=DLX_EXCHANGE, routing_key=ORDERS_ROUTING_KEY)
 
     def callback(ch, method, properties, body):
         try:

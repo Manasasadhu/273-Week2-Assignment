@@ -1,4 +1,4 @@
-## Async RabbitMQ — Campus Food Ordering (Part B):
+## Async RabbitMQ (Part B):
 
 ### Baseline testing of all services
 **Start all services using docker compose -**

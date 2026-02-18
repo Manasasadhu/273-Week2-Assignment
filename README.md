@@ -60,15 +60,9 @@ After InventoryService restarts, queued orders are automatically processed and t
 
 #### Idempotency Strategy Explanation
 
-InventoryService employs the following idempotency pattern:
+For inventory service, we used SQLite as Database to store processed orders with the order_id as PRIMARY KEY to detect duplicates. So, when a message/order arrives, we first check if the order_id already exists, if it does we skip the processing and ACK it. Else, we BEGIN a database transaction to reserve the inventory, add the processed order record and then only we ACK the RabbitMQ message. This ensures Duplicate messages are detected and skipped.
 
-1. **Duplicate Detection:** Uses SQLite `processed_orders` table with `order_id` as PRIMARY KEY
-2. **Check Before Process:** When a message arrives, checks if order_id already exists
-3. **If Duplicate:** Skip processing and send ACK
-4. **If New Order:** BEGIN transaction → reserve inventory → insert processed order record → COMMIT → ACK
-5. **ACK Placement:** ACK sent only AFTER database commit succeeds
-
-**Guarantee:** Same order_id delivered multiple times = processed exactly once, inventory decremented exactly once.
+Same order_id delivered multiple times, but processed exactly once, inventory decremented exactly once.
 
 ---
 

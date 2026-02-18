@@ -1,5 +1,7 @@
 ## Async RabbitMQ (Part B):
 
+Refer [Async-rabbitMQ's Readme](https://github.com/Manasasadhu/273-Week2-Assignment/blob/main/async-rabbitmq/README.md) for more information on the implementation details 
+
 ### Baseline testing of all services
 **Start all services using docker compose -**
 
@@ -20,6 +22,7 @@ After the inventory-service was restarted, the queued 50 orders are processed by
 <img width="1689" height="314" alt="image" src="https://github.com/user-attachments/assets/0d912615-239f-4aac-ac37-f23ac06bb138" />
 
 ### Demonstrate idempotency (duplicate message handling)
+
 **Created an order** 
 <img width="687" height="403" alt="image" src="https://github.com/user-attachments/assets/5e44aa32-4256-43e1-a9e3-f4d32a761bf6" />
 

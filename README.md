@@ -33,7 +33,7 @@ Checking the rows in DB and inventory reserved against this order-id (after re-p
 <img width="1673" height="148" alt="image" src="https://github.com/user-attachments/assets/79547ae1-5880-4668-a3d3-806b85c14e69" />
 
 **Explanation of Idempotency Strategy:**
-For inventory service, we used SQLite as Database to store processed orders with the order_id as PRIMARY KEY to detect duplicates. So, when a message/order arrives, we first check if the order_id already exists, if it does we skip the processing. Else, we BEGIN a database transaction to reserve the inventory, add the processed order record. 
+For inventory service, we used SQLite as Database to store processed orders with the order_id as PRIMARY KEY to detect duplicates. So, when a message/order arrives, we first check if the order_id already exists, if it does we skip the processing and ACK it. Else, we BEGIN a database transaction to reserve the inventory, add the processed order record and then only we ACK the RabbitMQ message. This ensures Duplicate messages are detected and skipped. 
 
 ### Test DLQ or poison message handling for a malformed event
 

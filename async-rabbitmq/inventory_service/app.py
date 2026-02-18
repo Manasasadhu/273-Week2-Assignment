@@ -24,13 +24,11 @@ DB_PATH = os.environ.get('INVENTORY_DB', '/data/inventory.db')
 
 os.makedirs('/data', exist_ok=True)
 
-# fault injection
 fault = {
     'delay': 0.0,
     'failure_rate': 0.0
 }
 
-# initialize DB
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -48,7 +46,6 @@ def init_db():
         created_at REAL
     )
     ''')
-    # Seed inventory if empty
     cur.execute('SELECT COUNT(1) FROM inventory')
     if cur.fetchone()[0] == 0:
         items = [('burger', 100), ('pizza', 100), ('sushi', 100), ('taco', 100), ('salad', 100)]
@@ -58,7 +55,6 @@ def init_db():
 
 init_db()
 
-# Rabbit connection & consumer
 
 def start_consumer():
     max_retries = 10
@@ -79,7 +75,6 @@ def start_consumer():
                 logger.error("Failed to connect to RabbitMQ after max retries")
                 return
 
-    # exchanges & queues
     ch.exchange_declare(exchange=ORDERS_EXCHANGE, exchange_type='direct', durable=True)
     ch.exchange_declare(exchange=DLX_EXCHANGE, exchange_type='direct', durable=True)
     ch.exchange_declare(exchange=INVENTORY_EXCHANGE, exchange_type='direct', durable=True)
@@ -90,7 +85,7 @@ def start_consumer():
     ch.queue_declare(queue=ORDERS_QUEUE, durable=True, arguments=args)
     ch.queue_bind(queue=ORDERS_QUEUE, exchange=ORDERS_EXCHANGE, routing_key=ORDERS_ROUTING_KEY)
     
-    # Create DLQ queue and bind to DLX exchange
+
     ch.queue_declare(queue='orders.dlq', durable=True)
     ch.queue_bind(queue='orders.dlq', exchange=DLX_EXCHANGE, routing_key=ORDERS_ROUTING_KEY)
 
@@ -114,7 +109,7 @@ def start_consumer():
 
         logger.info(f"Received OrderPlaced order_id={order_id} item={item} qty={qty}")
 
-        # fault injection
+       
         if fault['delay'] > 0:
             logger.warning(f"Injecting delay {fault['delay']}s")
             time.sleep(fault['delay'])
@@ -123,7 +118,7 @@ def start_consumer():
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
             return
 
-        # idempotency check
+       
         conn_db = sqlite3.connect(DB_PATH)
         cur = conn_db.cursor()
         cur.execute('SELECT order_id FROM processed_orders WHERE order_id = ?', (order_id,))
@@ -133,12 +128,11 @@ def start_consumer():
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
-        # check inventory
+        
         cur.execute('SELECT qty FROM inventory WHERE item = ?', (item,))
         row = cur.fetchone()
         if not row:
             logger.warning(f"Item not found: {item}")
-            # record failed
             cur.execute('INSERT INTO processed_orders (order_id, reservation_id, status, created_at) VALUES (?, ?, ?, ?)',
                         (order_id, None, 'failed_item_not_found', time.time()))
             conn_db.commit()
@@ -158,7 +152,6 @@ def start_consumer():
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
-        # reserve
         new_qty = available - qty
         cur.execute('UPDATE inventory SET qty = ? WHERE item = ?', (new_qty, item))
         reservation_id = f"RES-{order_id}"
@@ -182,7 +175,6 @@ def start_consumer():
     conn.close()
 
 
-# publishers
 def publish_inventory_reserved(order_id, reservation_id, item, qty, remaining, request_id):
     params = pika.ConnectionParameters(host=RABBIT_HOST)
     conn = pika.BlockingConnection(params)
@@ -218,7 +210,6 @@ def publish_inventory_failed(order_id, reason, request_id):
     conn.close()
 
 
-# Flask endpoints for health and runtime configure
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'healthy', 'service': 'async-inventory-service'}), 200
@@ -236,7 +227,6 @@ def configure():
 
 
 if __name__ == '__main__':
-    # run consumer in separate thread
     t = threading.Thread(target=start_consumer, daemon=True)
     t.start()
     app.run(host='0.0.0.0', port=5003)

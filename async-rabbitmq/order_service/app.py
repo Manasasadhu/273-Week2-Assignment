@@ -16,10 +16,8 @@ ORDERS_EXCHANGE = "orders"
 ORDERS_ROUTING_KEY = "order.placed"
 DB_PATH = "/data/orders.db"
 
-# Ensure local data directory
 os.makedirs("/data", exist_ok=True)
 
-# Initialize local sqlite store
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -38,7 +36,6 @@ def init_db():
 
 init_db()
 
-# Rabbit helper
 def publish_order(message: dict):
     params = pika.ConnectionParameters(host=RABBIT_HOST)
     conn = pika.BlockingConnection(params)
@@ -73,7 +70,7 @@ def create_order():
         'created_at': created
     }
 
-    # persist locally
+    
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("INSERT INTO orders (order_id, request_id, item, qty, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
@@ -81,7 +78,6 @@ def create_order():
     conn.commit()
     conn.close()
 
-    # publish event
     publish_order(order)
     logger.info(f"Published OrderPlaced order_id={order_id} item={item} qty={qty}")
 

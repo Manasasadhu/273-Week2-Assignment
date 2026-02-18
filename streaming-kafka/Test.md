@@ -33,7 +33,6 @@ This guide captures the three validation exercises we ran on the `streaming-kafk
    curl http://localhost:8080/metrics
    ```
 4. Capture artifacts:
-   - **Video placeholder**: _10k-burst-run.mp4_
    - Published 10k events and calculated metrics 
    - ![img_1.png](img_1.png)
 
@@ -64,7 +63,6 @@ This guide captures the three validation exercises we ran on the `streaming-kafk
    docker compose exec kafka kafka-consumer-groups --bootstrap-server kafka:9092 --describe --group analytics-consumer
    ```
 5. Capture artifacts:
-   - **Video placeholder**: _analytics-throttle-lag.mp4_
    - Consumer lag for analytics-consumer group 
    - ![img.png](img.png)
 
@@ -101,7 +99,6 @@ This guide captures the three validation exercises we ran on the `streaming-kafk
    ```
 4. Replay the workload by re-running the same burst command from test #1 (adjust `TOTAL_EVENTS` as needed) and sample metrics again for comparison.
 5. Capture artifacts:
-   - **Video placeholder**: _offset-reset-replay.mp4_
    - Consumer offset reset before and after
    - ![img_2.png](img_2.png)
    - Metrics calculated after replay - slight different due to 20k orders 

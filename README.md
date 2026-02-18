@@ -2,7 +2,7 @@
 
 ## Part B: Async RabbitMQ 
 
-Refer to [Async-RabbitMQ Implementation Guide](https://github.com/Manasasadhu/273-Week2-Assignment/blob/main/async-rabbitmq/README.md) for detailed implementation information.
+Refer to [Async-RabbitMQ Implementation Guide](https://github.com/Manasasadhu/273-Week2-Assignment/blob/main/async-rabbitmq/README.md) for implementation information.
 
 ---
 

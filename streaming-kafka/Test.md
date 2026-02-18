@@ -34,7 +34,8 @@ This guide captures the three validation exercises we ran on the `streaming-kafk
    ```
 4. Capture artifacts:
    - **Video placeholder**: _10k-burst-run.mp4_
-   - **Screenshot placeholder**: _metrics-baseline.png_
+   - Published 10k events and calculated metrics 
+   - ![img_1.png](img_1.png)
 
 **Expected observations**
 - `orders_per_min` spikes during the burst then decays as the inventory consumer drains the backlog.
@@ -64,7 +65,8 @@ This guide captures the three validation exercises we ran on the `streaming-kafk
    ```
 5. Capture artifacts:
    - **Video placeholder**: _analytics-throttle-lag.mp4_
-   - **Screenshot placeholder**: _consumer-lag-describe.png_
+   - Consumer lag for analytics-consumer group 
+   - ![img.png](img.png)
 
 **Expected observations**
 - `/metrics` updates every `REPORT_INTERVAL_SEC`, but values lag behind real-time because each event sleeps `THROTTLE_MS`.
@@ -100,7 +102,10 @@ This guide captures the three validation exercises we ran on the `streaming-kafk
 4. Replay the workload by re-running the same burst command from test #1 (adjust `TOTAL_EVENTS` as needed) and sample metrics again for comparison.
 5. Capture artifacts:
    - **Video placeholder**: _offset-reset-replay.mp4_
-   - **Screenshot placeholder**: _metrics-replay-diff.png_
+   - Consumer offset reset before and after
+   - ![img_2.png](img_2.png)
+   - Metrics calculated after replay - slight different due to 20k orders 
+   - ![img_3.png](img_3.png)
 
 **Why metrics may match or differ**
 - In the demo, bcz replay happened after 20k offsets/events, the numbers are slight different

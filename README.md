@@ -1,5 +1,81 @@
 # CMPE 273 - Week 2 Assignment - Campus Food Ordering
 
+---
+
+## Part A: Synchronous REST
+
+Refer to [Sync-REST Implementation Guide](sync-rest/README.md) for implementation details.
+
+### Architecture
+
+Three Flask microservices communicating via **synchronous HTTP REST calls**:
+
+- **OrderService** (port 8000) — Orchestrator: receives orders, calls Inventory + Notification synchronously
+- **InventoryService** (port 5001) — Manages food inventory, supports runtime fault injection
+- **NotificationService** (port 5002) — Logs order confirmation notifications
+
+### Test Results
+
+#### 1. Start All Services with Docker Compose
+
+All three services built and started successfully:
+
+![Docker Services Running](sync-rest/screenshots/docker_services_running.png)
+
+---
+
+#### 2. Baseline Latency Test (100 Requests)
+
+Sent 100 orders to measure baseline round-trip latency across the synchronous call chain:
+
+![Baseline Latency Results](sync-rest/screenshots/baseline_latency.png)
+
+**Result:** All 100 requests succeeded with an average latency of **3.71ms** (P95: 5.96ms, P99: 20.64ms)
+
+---
+
+#### 3. Delay Injection Test (2.0s Injected Delay)
+
+Injected a 2-second delay into InventoryService at runtime using `POST /configure`, then compared baseline vs delayed latencies:
+
+![Delay Injection Comparison](sync-rest/screenshots/delay_injection.png)
+
+| Scenario   | Min (ms) | Avg (ms)  | P95 (ms)  | Max (ms)  |
+|------------|----------|-----------|-----------|-----------|
+| Baseline   | 2.75     | 3.32      | 3.93      | 4.78      |
+| 2.0s Delay | 2011.46  | 2015.72   | 2019.43   | 2020.96   |
+
+Average latency increase: **2012.40 ms (~2.0s)**
+
+**Result:** Average latency increased from **3.32ms → 2015.72ms** (~2.0s increase), demonstrating that synchronous calls block the client for the full duration of downstream delays.
+
+
+---
+
+#### 4. Failure Injection Test
+
+**Test 1 — 100% Failure Rate (Inventory returns 500):**
+
+![Failure Injection 503](sync-rest/screenshots/failure_injection_503.png)
+
+**Result:** All 10/10 requests returned **503 Service Unavailable**. OrderService correctly propagates InventoryService failures to the client.
+
+**Test 2 — Timeout (10s delay exceeds 5s timeout):**
+
+![Failure Injection 504 + Summary](sync-rest/screenshots/failure_injection_504_summary.png)
+
+**Result:** All 5/5 requests returned **504 Gateway Timeout** after ~5s. Demonstrates synchronous blocking — the client waits until the timeout is reached.
+
+#### Key Takeaway
+
+In synchronous REST architectures, downstream failures **cascade directly** to the upstream caller:
+- Inventory 500 → OrderService 503 (Service Unavailable)
+- Inventory slow (exceeds timeout) → OrderService 504 (Gateway Timeout)
+- The client is **BLOCKED** for every request — there is no isolation between the caller and the failing dependency
+
+---
+---
+
 ## Part B: Async RabbitMQ 
 
 Refer to [Async-RabbitMQ Implementation Guide](https://github.com/Manasasadhu/273-Week2-Assignment/blob/main/async-rabbitmq/README.md) for implementation information.
